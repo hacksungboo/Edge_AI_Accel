@@ -63,7 +63,7 @@ class PrometheusCollector:
         if result and result['data']['result']:
             try:
                 power_value = float(result['data']['result'][0]['value'][1])
-                print(f"[POWER] {node_name}: {power_value:.2f}W")
+                #print(f"[POWER] {node_name}: {power_value:.2f}W")
             except (IndexError, ValueError, KeyError) as e:
                 print(f"Error parsing power data for {node_name}: {e}")
         else:
@@ -82,28 +82,31 @@ class PrometheusCollector:
         return total_power
     
     def calculate_dynamic_power_threshold(self, active_nodes):
-        """동적 전력 임계값 계산"""
+        """동적 전력 임계값 계산 (실측 데이터 반영)"""
+        # 실측 데이터 기반 전력 프로파일
         power_profiles = {
-            "jetson": {"idle": 2.2, "peak": 8.33},
-            "coral": {"idle": 4.5, "peak": 6.0}, 
-            "hailo": {"idle": 4.5, "peak": 6.0}
+            "coral1": {"idle": 4.56, "peak": 5.35},
+            "coral2": {"idle": 4.60, "peak": 5.28},
+            "jetson1": {"idle": 2.38, "peak": 6.47},
+            "jetson2": {"idle": 2.29, "peak": 6.24},
+            "hailo1": {"idle": 5.04, "peak": 5.33},
+            "hailo2": {"idle": 4.51, "peak": 5.01}
         }
         
         total_idle = 0
         total_peak = 0
         
         for node_name in active_nodes:
-            if "jetson" in node_name.lower():
-                total_idle += power_profiles["jetson"]["idle"]
-                total_peak += power_profiles["jetson"]["peak"]
-            elif "coral" in node_name.lower():
-                total_idle += power_profiles["coral"]["idle"] 
-                total_peak += power_profiles["coral"]["peak"]
-            elif "hailo" in node_name.lower():
-                total_idle += power_profiles["hailo"]["idle"]
-                total_peak += power_profiles["hailo"]["peak"]
+            if node_name in power_profiles:
+                total_idle += power_profiles[node_name]["idle"]
+                total_peak += power_profiles[node_name]["peak"]
+            else:
+                # 기본값 (알 수 없는 노드)
+                total_idle += 4.0
+                total_peak += 6.0
         
-        threshold = total_idle + (total_peak - total_idle) * 0.7
+        # 임계값 = idle + (peak - idle) * 0.8
+        threshold = total_idle + (total_peak - total_idle) * 0.8
         return threshold
     
     def get_node_status(self, node_name: str) -> bool:

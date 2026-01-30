@@ -7,7 +7,7 @@ class SLOMonitor:
     def __init__(self, experiment_id):
         self.experiment_id = experiment_id
         self.violations = []
-        self.slo_log_file = f"./results/slo_violations_{experiment_id}.csv"
+        self.slo_log_file = f"./results/[SLO] slo_violations_{experiment_id}.csv"
         self._init_slo_log()
     
     def _init_slo_log(self):
@@ -37,9 +37,9 @@ class SLOMonitor:
             self.violations.append(violation_record)
             self._log_violation(violation_record)
             
-            print(f"[SLO VIOLATION] {task.task_id} ({task.slo_type}): "
-                  f"{actual_completion_time:.2f}s > {task.adapted_deadline:.2f}s "
-                  f"(+{violation_amount:.2f}s)")
+            #print(f"[SLO VIOLATION] {task.task_id} ({task.slo_type}): "
+            #      f"{actual_completion_time:.2f}s > {task.adapted_deadline:.2f}s "
+            #      f"(+{violation_amount:.2f}s)")
             
             return True
         return False

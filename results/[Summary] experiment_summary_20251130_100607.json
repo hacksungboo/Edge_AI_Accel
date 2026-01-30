@@ -1,0 +1,9 @@
+{
+  "experiment_id": "20251130_100607",
+  "start_time": "2025-11-30T10:06:08.676987",
+  "end_time": "2025-11-30T10:17:07.529065",
+  "duration_seconds": 658.8520774841309,
+  "total_tasks": 27252,
+  "total_devices": 125,
+  "slo_violations": 2759
+}
