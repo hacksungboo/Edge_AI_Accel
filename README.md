@@ -1,12 +1,10 @@
 # Edge AI 가속기: 이기종 가속기 환경에서의 전력 및 SLO 인식 추론 스케줄링
 
-이기종 AI 가속기를 갖춘 엣지 컴퓨팅 환경에서 실시간 추론 요청을 스케줄링하는 종합 시스템이다. 전력 효율성, 서비스 수준 목표(SLO) 준수, 디바이스 모빌리티 인식에 중점을 두고 있다.
+이기종 AI 가속기를 갖춘 엣지 컴퓨팅 환경에서 실시간 추론 요청을 스케줄링하는 종합 시스템이다. 전력 효율성, SLO 준수, 디바이스 모빌리티 정보 반영에 중점을 두고 있다.
 
 ## 개요
 
-이 프로젝트는 이기종 엣지 컴퓨팅 클러스터에 딥러닝 추론 작업을 분배하기 위한 고급 스케줄링 프레임워크를 구현한다. 다양한 가속기 유형(Google Coral TPU, NVIDIA Jetson, Hailo)에서 여러 CNN 모델(MobileNet, ResNet50, EfficientNet, VGG16)을 평가하면서 전력 소비와 데드라인 준수를 동시에 최적화한다.
-
-**핵심 혁신**: 데드라인 안전성, 처리 성능, 전력 효율성, 모빌리티 인식 데드라인 적응을 균형 있게 고려하는 다중 기준 스케줄링(TOPSIS) 알고리즘이다.
+이 프로젝트는 이기종 엣지 컴퓨팅 클러스터에 딥러닝 추론 작업을 분배하기 위한 동적 스케줄링 프레임워크를 구현한다. 다양한 가속기 유형(Google Coral TPU, NVIDIA Jetson, Hailo)에서 여러 CNN 모델(MobileNet, ResNet50, EfficientNet, VGG16)의 추론 요청을 처리하며 전력 소비와 데드라인 준수를 동시에 최적화한다.
 
 ## 클러스터 아키텍처
 
@@ -14,25 +12,25 @@
 
 ```
 마스터 노드 (Raspberry Pi 5)
-├─ Kubernetes (k3s) 제어 평면
+├─ Kubernetes (k3s) control plane
 ├─ Prometheus 모니터링 시스템 (포트 30090)
 ├─ Grafana 대시보드 (포트 30300)
 └─ 스케줄링 알고리즘 실행 환경
 
-워커 노드들 (k3s)
-├─ Coral 노드들 (Coral1, Coral2)
+워커 노드 (k3s)
+├─ Coral 노드 (Coral1, Coral2)
 │  ├─ Raspberry Pi 5 기반
 │  ├─ Google Coral TPU 가속기
 │  └─ FastAPI 추론 서버 (포트 8080)
 │
-├─ Jetson 노드들 (Jetson1, Jetson2)
+├─ Jetson 노드 (Jetson1, Jetson2)
 │  ├─ NVIDIA Jetson Nano
 │  ├─ NVIDIA GPU 가속기
 │  └─ FastAPI 추론 서버 (포트 8080)
 │
-├─ Hailo 노드들 (Hailo1, Hailo2)
-│  ├─ Intel 프로세서 기반
-│  ├─ Hailo AI 가속기
+├─ Hailo 노드 (Hailo1, Hailo2)
+│  ├─ Raspberry Pi 5 기반
+│  ├─ Hailo-8L 가속기
 │  └─ FastAPI 추론 서버 (포트 8080)
 │
 └─ 모니터링 에이전트
@@ -108,7 +106,7 @@ Edge_AI_Accel/
     └── README_KO.md (한글)
 ```
 
-## 코어 코드 파일 설명
+## 주요 코드 파일 설명
 
 ### 실험 오케스트레이션
 
@@ -157,7 +155,7 @@ WORKERS = {
 IoT 디바이스와 추론 작업을 생성한다.
 
 **주요 기능**:
-- 커버리지 영역 내 1000개 디바이스 생성
+- 커버리지 영역 내 100개 디바이스 생성
 - 포아송 분포 기반 작업 도착 시뮬레이션
 - 모델 선택: MobileNet, ResNet50, EfficientNet, VGG16
 - SLO 클래스 분류: Hard(15%), Normal(35%), Soft(50%)
