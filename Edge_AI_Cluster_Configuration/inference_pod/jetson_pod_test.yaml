@@ -1,0 +1,38 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: jetson-infer
+spec:
+  nodeSelector:
+    hardware: jetson
+  containers:
+  - name: jetson-container
+    image: junghyunseok/jetson-infer:arm64
+    command: ["/usr/src/tensorrt/bin/trtexec"]
+    args:
+      - "--loadEngine=/app/mobilenetv2_int8.engine"
+      - "--iterations=10"
+      - "--avgRuns=1"
+      - "--noDataTransfers"
+      - "--useSpinWait"
+      - "--duration=0"
+      - "--exportTimes=/app/output.json"
+    volumeMounts:
+    - name: app-volume
+      mountPath: /app
+    - name: usr-volume
+      mountPath: /usr
+    env:
+    - name: LD_LIBRARY_PATH
+      value: /usr/local/cuda-10.2/lib64:/usr/lib/aarch64-linux-gnu:/usr/lib/aarch64-linux-gnu/tegra
+    securityContext:
+      privileged: true
+  volumes:
+  - name: app-volume
+    hostPath:
+      path: /home/icns/jhs/models
+  - name: usr-volume
+    hostPath:
+      path: /usr
+  restartPolicy: Never
+

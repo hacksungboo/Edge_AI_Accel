@@ -1,0 +1,37 @@
+FROM ubuntu:22.04
+
+WORKDIR /home
+ENV HOME /home
+ARG DEBIAN_FRONTEND=noninteractive
+ENV TZ=Asia/Seoul
+
+VOLUME /data
+EXPOSE 88
+
+# install packages
+RUN apt-get update && apt-get install -y \
+    git nano python3-pip python3-dev pkg-config wget usbutils vim curl \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Install specific numpy version
+RUN python3 -m pip install --upgrade pip \
+    && python3 -m pip install --no-cache-dir "numpy<2"
+
+# install edge tpu runtime
+RUN echo "deb https://packages.cloud.google.com/apt coral-edgetpu-stable main" | tee /etc/apt/sources.list.d/coral-edgetpu.list \
+    && curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add - \
+    && apt-get update \
+    && apt-get install -y libedgetpu1-std \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# install PyCoral, TFLite runtime 
+RUN wget https://github.com/oberluz/pycoral/releases/download/2.13.0/pycoral-2.13.0-cp310-cp310-linux_aarch64.whl \
+    && wget https://github.com/oberluz/pycoral/releases/download/2.13.0/tflite_runtime-2.13.0-cp310-cp310-linux_aarch64.whl \
+    && python3 -m pip install --no-cache-dir pycoral-2.13.0-cp310-cp310-linux_aarch64.whl \
+    && python3 -m pip install --no-cache-dir tflite_runtime-2.13.0-cp310-cp310-linux_aarch64.whl \
+    && rm pycoral-2.13.0-cp310-cp310-linux_aarch64.whl \
+    && rm tflite_runtime-2.13.0-cp310-cp310-linux_aarch64.whl
+
+COPY . /home
+
+CMD ["/bin/bash"]

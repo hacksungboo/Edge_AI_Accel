@@ -1,0 +1,68 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: rasp-power-exporter
+  labels:
+    app: rasp-power-exporter
+spec:
+  selector:
+    matchLabels:
+      app: rasp-power-exporter
+  template:
+    metadata:
+      labels:
+        app: rasp-power-exporter
+    spec:
+      nodeSelector:
+        hardware: raspberrypi
+      hostNetwork: true  # 블루투스/네트워크 접근을 위해 필요
+      # hostPID, hostIPC는 블루투스 통신에는 필수는 아니지만, 필요시 추가
+      # hostPID: true
+      # hostIPC: true
+      containers:
+      - name: exporter
+        image: qngkrtjd/raspberrypi-exporter:arm64  # 실제 이미지명으로 변경
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8000
+          hostPort: 8000
+        volumeMounts:
+        - name: mac-config
+          mountPath: /etc/power-exporter
+          # subPath: mac_address  # 호스트 파일 전체를 마운트할 때는 subPath 생략
+        - name: dev-bluetooth
+          mountPath: /dev
+        securityContext:
+          privileged: true
+          capabilities:
+            add: ["CAP_NET_ADMIN", "CAP_NET_RAW"]
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "100m"
+      volumes:
+      - name: mac-config
+        hostPath:
+          path: /etc/power-exporter
+          type: Directory
+      - name: dev-bluetooth
+        hostPath:
+          path: /dev
+          type: Directory
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rasp-power-exporter
+  labels:
+    app: rasp-power-exporter
+    release: prometheus
+spec:
+  selector:
+    app: rasp-power-exporter
+  ports:
+  - name: http
+    port: 8000
+    targetPort: 8000
+  clusterIP: None  # Headless Service로 설정

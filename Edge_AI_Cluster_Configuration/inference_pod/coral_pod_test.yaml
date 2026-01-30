@@ -1,0 +1,35 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: coral-infer
+spec:
+  nodeSelector:
+    hardware: coral
+  containers:
+  - name: coral-container
+    image: junghyunseok/coral-infer-v2:arm64
+    command: ["python3"]
+    args:
+      - /home/pycoral/examples/classify_image.py
+      - --model
+      - /home/pycoral/test_data/mobilenet_v2_1.0_224_inat_bird_quant_edgetpu.tflite
+      - --labels
+      - /home/pycoral/test_data/inat_bird_labels.txt
+      - --input
+      - /home/pycoral/test_data/parrot.jpg
+    volumeMounts:
+    - mountPath: /home/pycoral/test_data
+      name: test-data
+    - mountPath: /dev/bus/usb
+      name: usb
+    securityContext:
+      privileged: true
+  volumes:
+  - name: test-data
+    hostPath:
+      path: /home/icns/hyunseok/test_data
+  - name: usb
+    hostPath:
+      path: /dev/bus/usb
+  restartPolicy: Never
+

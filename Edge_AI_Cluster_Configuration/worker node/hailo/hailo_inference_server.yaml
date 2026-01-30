@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: hailo-inference-server
+spec:
+  selector:
+    matchLabels:
+      app: hailo-infer
+  template:
+    metadata:
+      labels:
+        app: hailo-infer
+    spec:
+      nodeSelector:
+        hardware: hailo
+      containers:
+        - name: hailo-infer
+          image: qngkrtjd/hailo-inference-server:arm64
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+          securityContext:
+            privileged: true
+          env:
+            - name: MY_NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+          volumeMounts:
+            - name: dev
+              mountPath: /dev
+            - name: model
+              mountPath: /app/model
+      volumes:
+        - name: dev
+          hostPath:
+            path: /dev
+        - name: model
+          hostPath:
+            path: /home/icns/hsb/model
+

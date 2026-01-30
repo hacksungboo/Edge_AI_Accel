@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: coral-inference-server
+spec:
+  selector:
+    matchLabels:
+      app: coral-infer
+  template:
+    metadata:
+      labels:
+        app: coral-infer
+    spec:
+      nodeSelector:
+        hardware: coral # label
+      containers:
+        - name: coral-infer
+          image: qngkrtjd/coral-inference-server:arm64
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+          securityContext:
+            privileged: true # for usb
+          volumeMounts:
+            - name: model-volume
+              mountPath: /app/model
+            - name: usbbus
+              mountPath: /dev/bus/usb
+          env:
+            - name: MY_NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+      volumes:
+        - name: model-volume
+          hostPath:
+            path: /home/icns/hsb/model # model path
+        - name: usbbus
+          hostPath:
+            path: /dev/bus/usb
+

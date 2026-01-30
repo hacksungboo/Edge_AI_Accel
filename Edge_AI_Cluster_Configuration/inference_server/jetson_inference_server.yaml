@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: jetson-inference-server
+spec:
+  selector:
+    matchLabels:
+      app: jetson-infer
+  template:
+    metadata:
+      labels:
+        app: jetson-infer
+    spec:
+      nodeSelector:
+        hardware: jetson
+      containers:
+        - name: jetson-infer
+          image: qngkrtjd/jetson-inference-server:arm64
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+          securityContext:
+            privileged: true
+          env:
+            - name: LD_LIBRARY_PATH
+              value: /usr/local/cuda-10.2/lib64:/usr/lib/aarch64-linux-gnu:/usr/lib/aarch64-linux-gnu/tegra
+            - name: MY_NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+          volumeMounts:
+            - name: cuda-lib
+              mountPath: /usr/local/cuda-10.2/lib64
+            - name: tegra-lib
+              mountPath: /usr/lib/aarch64-linux-gnu/tegra
+            - name: cuda-driver
+              mountPath: /usr/lib/aarch64-linux-gnu
+            - name: model-volume
+              mountPath: /app/model
+            - name: tensorrt-python
+              mountPath: /usr/lib/python3.6/dist-packages/tensorrt
+            - name: tensorrt-dist
+              mountPath: /usr/lib/python3.6/dist-packages/tensorrt-8.2.1.8.dist-info
+      volumes:
+        - name: model-volume
+          hostPath:
+            path: /home/icns/hsb/model
+        - name: cuda-lib
+          hostPath:
+            path: /usr/local/cuda-10.2/lib64    
+        - name: tegra-lib
+          hostPath:
+            path: /usr/lib/aarch64-linux-gnu/tegra
+        - name: cuda-driver
+          hostPath:
+            path: /usr/lib/aarch64-linux-gnu
+        - name: tensorrt-python
+          hostPath:
+            path: /usr/lib/python3.6/dist-packages/tensorrt
+        - name: tensorrt-dist
+          hostPath:
+            path: /usr/lib/python3.6/dist-packages/tensorrt-8.2.1.8.dist-info

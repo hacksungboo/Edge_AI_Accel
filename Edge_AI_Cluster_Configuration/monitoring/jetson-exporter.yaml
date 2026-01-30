@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: jetson-exporter
+  labels:
+    app: jetson-exporter
+spec:
+  selector:
+    matchLabels:
+      app: jetson-exporter
+  template:
+    metadata:
+      labels:
+        app: jetson-exporter
+    spec:
+      nodeSelector:
+        hardware: jetson
+      hostPID: true
+      hostIPC: true
+      containers:
+        - name: exporter
+          image: qngkrtjd/jetson-exporter:arm64
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8000
+              hostPort: 8000
+          volumeMounts:
+            - name: run-jtop
+              mountPath: /run
+          resources:
+            limits:
+              memory: "128Mi"
+              cpu: "100m"
+      volumes:
+        - name: run-jtop
+          hostPath:
+            path: /run
+            type: Directory
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: jetson-exporter
+  labels:
+    app: jetson-exporter
+    release: prometheus
+spec:
+  selector:
+    app: jetson-exporter
+  ports:
+    - name: http
+      port: 8000
+      targetPort: 8000
+  clusterIP: None  # Headless Service로 설정
+

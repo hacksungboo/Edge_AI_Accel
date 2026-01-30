@@ -1,0 +1,38 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: hailo-infer
+spec:
+  nodeSelector:
+    hardware: hailo
+  containers:
+  - name: hailo-container
+    image: junghyunseok/hailo-infer:latest
+    command: ["python3"]
+    args:
+      - /app/hail_docker/hailo-infer.py
+      - --model
+      - /app/model/mobilenet_v2_1.0.hef
+      - --iterations
+      - "10"
+    volumeMounts:
+    - name: dev
+      mountPath: /dev
+    - name: model
+      mountPath: /app/model
+    - name: code
+      mountPath: /app/hail_docker
+    securityContext:
+      privileged: true
+  volumes:
+  - name: dev
+    hostPath:
+      path: /dev
+  - name: model
+    hostPath:
+      path: /home/icns/jhs/models
+  - name: code
+    hostPath:
+      path: /home/icns/jhs
+  restartPolicy: Never
+
